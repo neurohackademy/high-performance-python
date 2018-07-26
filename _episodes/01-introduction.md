@@ -3,19 +3,19 @@ title: "Introduction"
 teaching: 10
 exercises: 5
 questions:
-- "Why use Cython?"
-- "How do you install Cython?"
-- "What are some ways you can use Cython?"
+- "Why is Python slow?"
+- "Why is Python fast?"
+- "What are some ways you can speed Python up even more?"
 objectives:
-- "Install Cython on your own laptop using conda"
-- "Write functions that can be cythonized in the notebook"
-- "Profile functions with ipython magic functions, and measure speedup due to cythonization"
-keypoints:
-- "Cython can speed up some computations dramatically"
-- "Profiling code is a useful way to know whether Cython is helping"
+- "Profile functions with ipython magic functions"
+key points:
+- "Python is slow"
+- "Python is fast when you can vectorize it"
+- "There are several approaches to speeding up code beyond vectorizing"
+- "Profiling code is a useful way to know whether some change is helping"
 ---
 
-### Introducing Cython
+### Introduction
 
 Writing code in python is easy: because it is dynamically typed, we don't have
 to worry to much about declaring variable types (e.g. integers vs. floating
@@ -25,214 +25,196 @@ statically typed languages hard to read. However, this incurs a major drawback:
 performance for some operations can be quite slow.
 
 Whenever possible, the numpy array representation is helpful in saving
-time. But not all operations can be vectorized. Other times, your only choice
-is to extension code in C, but this is very cumbersome, and requires writing
-many lines of additional code above and beyond your core algorithms, just to
-communicate between the Python and C computation layers.
+time. But not all operations can be vectorized. What do you do when you need
+to speed up your code, but can't rely on vectorization?
 
-[Cython](http://cython.org/) is a technology that allows us to easily bridge
-between python, and the underlying C representations. The main purpose of the
-library is to take code that is written in python, and, provided some additional
-amount of (mostly type) information, compile it to C, compile the C code, and
-bundle the C objects into python extensions that can then be imported directly
-into python.
+Here, we'll explore three approaches to speeding up code:
 
-### Installing Cython
+1. Sometimes, your only choice in speeding up code is to write extension
+   code in C, but this is very cumbersome, and requires writing many
+   lines of additional code above and beyond your core algorithms, just
+   to communicate between the Python and C computation layers.
+   [Cython](http://cython.org/) is a technology that allows us to easily
+   bridge between python, and the underlying C representations. The main
+   purpose of the library is to take code that is written in python, and,
+   provided some additional amount of (mostly type) information, compile
+   it to C, compile the C code, and bundle the C objects into python
+   extensions that can then be imported directly into python.
 
-You can install Cython from the command line using `conda`:
+2. [Numba](https://numba.pydata.org/) also compiles your code to machine
+   code, but it takes a distinctly different approach. Instead of
+   translating your Python code to C, and then compiling that down to, it
+   relies on the [LLVM compiler infrastructure](http://llvm.org/), to
+   compile the code "just in time", at the time that the code is called.
+
+3. Another approach to speeding up execution of code is by parallelizing
+   it. Most of the time (but not always), Python code that you write will
+   run on a single thread at any given time (because of the so-called
+   Global Interpreter Lock, or GIL).
+
+### Profiling
+
+To know whether what you are doing is helping, it is crucial to measure
+how well you are doing before and after some change. Profiling is a way
+to know how well a particular piece of code works.
+
+#### The IPython `timeit` magic
+
+In the Jupyter Python notebook, you can use a 'magic' function to time
+either a single statement, or multiple statements.
+
+For example:
 
 ~~~
-conda install cython
+import numpy as np
+
+for shape in [10e3, 10e4, 10e5]:
+    X = np.random.rand(int(shape))
+    %timeit np.dot(X, X.T)
+~~~
+{: .python}
+
+Demonstrates how to time the scaling of one operation over inputs of
+different sizes. The `%timeit` magic only times the operation on _that line_.
+
+It should look something like this:
+
+~~~
+3.29 µs ± 31 ns per loop (mean ± std. dev. of 7 runs, 100000 loops each)
+26.7 µs ± 364 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)
+388 µs ± 15.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+~~~
+{: .python}
+
+In contrast, if you use `%%timeit`, the magic would apply to the entire cell.
+
+For example, in the following cell, we might calculate the pair-wise
+distance between the entries in a random matrix of 100 by 100, and store
+them:
+
+~~~
+X = np.random.rand(100, 100)
+D = np.empty((100, 100))
+
+M = X.shape[0]
+N = X.shape[1]
+for i in range(M):
+    for j in range(M):
+        d = 0.0
+        for k in range(N):
+            tmp = X[i, k] - X[j, k]
+            d += tmp * tmp
+        D[i, j] = np.sqrt(d)
+~~~
+{: .python}
+
+
+This might take something like:
+
+~~~
+468 ms ± 3.38 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+~~~
+
+### Line profiling
+
+Knowing that some set of procedures takes time is good, but to improve
+things, often need to drill down deeper, and figure out which exact lines
+within a function are the ones that take up most of the time.
+
+That's where a line-profiler comes in handy. To install with conda:
+
+~~~
+conda install line-profiler
 ~~~
 {: .bash}
 
-### A first example - why use Cython?
+To use the line-profiler in the notebook, you'll first need to load the
+line_profiler extension:
 
-To demonstrate the usefulness of Cython, we'll start with an atypical usage
-pattern: In the `Jupyter `notebook, we will use the `cython` extension, to
-demonstrate why and how to use cython.
-
-Later, we will also look at how to use cython in the context of modules and
-libraries. But for now, let's load the cython extension. This allows us to
-mark cells as Cython cells by starting them with `%%cython` magic.
 
 ~~~
-%load_ext cython
+%load_ext line_profiler
+~~~
+
+
+One you've done that, you'll need to define a function around the code
+that you are interested in profiling:
+
+~~~
+def distance():
+    X = np.random.rand(100, 100)
+    D = np.empty((100, 100))
+
+    M = X.shape[0]
+    N = X.shape[1]
+    for i in range(M):
+        for j in range(M):
+            d = 0.0
+            for k in range(N):
+                tmp = X[i, k] - X[j, k]
+                d += tmp * tmp
+            D[i, j] = np.sqrt(d)
+~~~
+{: .python}
+
+Sometimes the function you want to profile is not the same as the one you
+would call to profile it, so the syntax of the line-profiler extension
+is:
+
+~~~
+%lprun -f function_to_be_profiled function_to_be_called()
+~~~
+
+In this case, they are the same, so running the following:
+
+~~~
+%lprun -f distance distance()
+~~~
+
+Would produce something like this:
+
+~~~
+Timer unit: 1e-06 s
+
+Total time: 2.21674 s
+File: <ipython-input-5-2dd6126db7de>
+Function: distance at line 1
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     1                                           def distance():
+     2         1        289.0    289.0      0.0      X = np.random.rand(100, 100)
+     3         1         17.0     17.0      0.0      D = np.empty((100, 100))
+     4
+     5         1          3.0      3.0      0.0      M = X.shape[0]
+     6         1          0.0      0.0      0.0      N = X.shape[1]
+     7       101        107.0      1.1      0.0      for i in range(M):
+     8     10100       5793.0      0.6      0.3          for j in range(M):
+     9     10000       5209.0      0.5      0.2              d = 0.0
+    10   1010000     522677.0      0.5     23.6              for k in range(N):
+    11   1000000     945404.0      0.9     42.6                  tmp = X[i, k] - X[j, k]
+    12   1000000     700715.0      0.7     31.6                  d += tmp * tmp
+    13     10000      36526.0      3.7      1.6              D[i, j] = np.sqrt(d)
 ~~~
 {: .python}
 
 
-Let's see what this is good for. Consider a very simple function in Python:
-
-~~~
-def my_poly(a,b):
-    return 10.5 * a + 3 * (b**2)
-~~~
-{: .python}
+The 'Hits' column is important, because it tells us that some lines of
+code are heavily used. And the '% Time' column is also very important,
+because it tells us where we should focus our attention first, in making
+this go faster.
 
 
-The equivalent Cython function is defined in a `%%cython` cell.
 
-~~~
-%%cython
-def my_polyx(double a, double b):
-    return 10.5 * a + 3 * (b**2)
-~~~
-{: .python}
-
-
-> ## What are the differences?  
+> Similar to profiling execution time, sometimes you need to profile memory
+> usage. There's a thing for that too!
+> To install with conda:
 >
-> Note that the only difference is that we tell the function to treat these
-> variables as double-precision numbers. Why is that important?
-> **Cython is a dialect of Python**: If this code were written in a regular
-> Python cell it would produce a syntax error. Cython is a 'dialect' of python,
-> but it is not exactly like Python.
-> In fact, Cython is a proper superset of python. That means that any python
-> code is syntactical Cython code, but not the opposite.
+>   `conda install memory_profiler`
 >
-{: .callout}
-
-To time the performance of Python/Cython code, we can use the IPython
-`%timeit` magic:
-
-~~~
-%timeit my_poly(10, 2)
-%timeit my_polyx(10, 2)
-~~~
-{: .python}
-
-For even a trivial piece of code, we can already gain an approximately 3-fold
-speedup
-
-Let's consider an (only slightly) more interesting example, the calculation of
-the Fibonacci series.
-
-> ## The Fibonacci series
+> And to use:
+>   `%load_ext memory_profiler`
+>   `%mprun -f distance distance()`
 >
-> The [Fibonacci series](https://en.wikipedia.org/wiki/Fibonacci_number) are
-> arranged according to the rule:
->     F[n] = F[n-1] + F[n-2]
->
-> This series has many interesting properties, but for our purposes it has one
-> particulary interesting property and that is the fact that the item in the
-> `n`th location cannot be calculated in a vectorized fashion (without first
-> calculating items in `n-1`, `n-2` and so on until `n-1 = 0`). This means that
-> we expect a naive computation to be rather slow.
-
-~~~
-def fib(n):
-    a, b = 1, 1
-    for i in range(n):
-        a, b = a + b, a
-
-    return a
-~~~
-{: .python}
-
-
-For the Cython version of the function, we will use the `cdef` keyword (a
-Cython language constant) to define local variables (integers used only within the function):
-
-~~~
-%%cython
-def fibx(int n):
-    cdef int i, a, b
-    a, b = 1, 1
-    for i in range(n):
-        a, b = a + b, a
-    return a
-~~~
-{: .python}
-
-Compare the two using `%timeit`:
-
-~~~
-%timeit fib(10)
-%timeit fibx(10)
-~~~
-{: .python}
-
-In this case, we are already in the realm of a 10X speedup!
-
-Let's pause to consider the implications of this. The C code required to
-perform the same calculation as fibx might look something like this:
-
-~~~
-int fib(int n){
-    int tmp, i, a, b;
-    a = b = 1;
-    for(i=0; i<n; i++){
-         tmp = a;
-         a += b;
-         b = tmp;}         
-    return a;}
-~~~
-{: .code}
-
-In and of itself, that's not too terrible, but can get unpleasant if you write
-more than this trivial function. The main issue is that integrating this code
-into a python program is not trivial and requires writing extension code (think
-mex, if you've used these in Matlab). This also has overhead that is hard to
-optimize. Cython writes highly optimized python extension code, making it easy
-to separate out performance bottle-necks and compile them, but keep using the
-functions in your Python code.
-
-> ## Speeding up recursion
->
-> Recursive functions are functions that call themselves during their
-> execution. Another interesting property of the Fibonacci series is that it
-> can be written as a recursive function. That's because each item depends on
-> the values of other items (namely item n-1 and item n-2)
->
-> Rewrite the `fib` function using recursion. Is it faster than the
-> non-recursive version? Does Cythonizing it give even more of an advantage?
->
-{: .challenge}
-
-
-> ## Speeding up recursion
-> Here is a version of the Fibonacci series written using recursion:
->
->     def fib_r(n):
->         if n <= 1:
->             return n
->         else:
->             return fib_r(n-1) + fib_r(n-2)
->
-> Is it better? Well, it turns out that recursion looks clever, but works much
-> worse (why is that?). Even worse for this case, Cythonizing the recursed
-> version of Fibonacci doesn't do much for us either. Why do you think that is?
-> Later, we'll see how we can diagnose these situations.
-{: .solution}
-
-
-### Writing Cython that also works as Python
-
-One of the major challenges in using Cython is that it requires compiling the
-code for all the platforms (and architectures) on which you want to run the
-code. This often means that you will distribute the Cython source code and ask
-users to compile it themselves. If this fails, however, you might still want the
-code to do what it's supposed to do, albeit slower.
-
-The following is a perfectly syntactical Python example, that can also be
-compiled using Cython. The declarations are now done as calls to functions in
-the Cython library, instead of. If all else fails, this could would still work.
-
-~~~
-%%cython
-import cython
-@cython.locals(n=cython.int)
-def fib_pure_python(n):
-    cython.declare(a=cython.int,
-                   b=cython.int,
-                   i=cython.int)
-    a, b = 1, 1
-    for i in range(n):
-        a, b = a + b, a
-    return a
-~~~
-{: .python}
-
-Try running this code with the `%%cython` magic removed, and witness the slow
-down back to Python speed.
+> We will not demonstrate this here, but take a look at some examples
+> in [Chapter 1 of Jake Vanderplas' book](https://jakevdp.github.io/PythonDataScienceHandbook/01.07-timing-and-profiling.html)
