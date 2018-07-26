@@ -9,11 +9,11 @@ kind: "lesson"
 title: "Cython and Numba"
 
 # Repository URL (without trailing slash).
-repo: https://github.com/neurohackweek/cython-tutorial
+repo: https://github.com/neurohackademy/high-performance-python
 
 # Root URL below username.github.io domain, with leading slash but no trailing slash.
 # For example, for 'https://neurohackweek.github.io/lesson-example', use '/lesson-example'.
-root: "/cython-tutorial"
+root: "/high-performance-python"
 
 # Contact email address.
 email: arokem@uw.edu
@@ -26,15 +26,15 @@ email: arokem@uw.edu
 is_production: true
 
 # Sites.
-nhw_site: "https://neurohackweek.github.io"
-nhw_github: "https://github.com/neurohackweek"
+nhw_site: "https://neurohackademy.org
+nhw_github: "https://github.com/neurohackademy"
 swc_site: "https://software-carpentry.org"
 template_repo: "https://github.com/swcarpentry/styles"
 example_repo: "https://github.com/swcarpentry/lesson-example"
 example_site: "https://swcarpentry.github.com/lesson-example"
 
 # Start time in minutes (540 is 09:00 am)
-start_time: 1020
+start_time: 540
 
 # Specify that things in the episodes collection should be output.
 collections:
