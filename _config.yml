@@ -6,7 +6,7 @@
 kind: "lesson"
 
 # Overall title for pages.
-title: "Cython and Numba"
+title: "High performance Python"
 
 # Repository URL (without trailing slash).
 repo: https://github.com/neurohackademy/high-performance-python
