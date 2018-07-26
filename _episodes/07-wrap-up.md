@@ -15,11 +15,12 @@ keypoints:
 - "Use them judiciously, to make your code faster"
 ---
 
-## Why *not* to use Cython/Numba
+## Why *not* to use Cython/Numba/Dask
 
 One big disadvantage of using Cython/Numba is that it makes handling and
-debugging errors harder. That is because the tracebacks that you get when
-things go wrong will be much harder to decipher.
+debugging errors harder. This is also sometimes the case with Dask. That
+is because the tracebacks that you get when things go wrong will be much
+harder to decipher.
 
 This means that code has to be thoroughly tested before it is converted to a
 compiled version.
