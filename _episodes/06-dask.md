@@ -1,4 +1,3 @@
-
 ---
 title: "Dask"
 teaching: 10
@@ -92,6 +91,8 @@ Once this graph is computed, Dask can see that the two variables do not
 depend on each other, and they can be executed in parallel. So, a
 computation that would take 2 seconds serially is immediately sped up
 n-fold (with n being the number of independent variables, here 2).
+
+
 
 
 
