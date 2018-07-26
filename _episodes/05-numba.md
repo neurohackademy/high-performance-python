@@ -151,11 +151,11 @@ def fib_obj_j(n):
 
 Timing this, we find it to be substantially *slower* than the non-jitted Python
 version. The reason for this is that Numba is unable to do any type inference
-here. Instead
+here. Instead it defaults to the non-optimized Python code.
 
 ### What is it really good for?
 
-Let's look at an example where Numba really shines (h/t to [Jake Vanderplas](https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/)).
+Let's look at an example where Numba really shines (taken from [a blog post by Jake Vanderplas](https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/)).
 Consider a numpy function to calculate the parwise Euclidean distances between
 two sets of coordinates:
 

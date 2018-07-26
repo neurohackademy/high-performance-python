@@ -54,7 +54,7 @@ setup(ext_modules=[ext],
 ~~~
 {: .python}
 
-To compile the fib.pyx file, we run the `setup` file:  
+To compile the fib.pyx file, we run the `setup` file:
 
 ~~~
 python setup_fib.py build_ext --inplace [--compiler=mingw32 #only for Windows!]
@@ -69,7 +69,6 @@ import fib
 a = fib.fib(10)
 ~~~
 {: .python}
-
 
 ### C fails fast
 
@@ -117,7 +116,7 @@ forth. Some of these objects need to have a public interface, so that they can
 be used by our Python code, but some of these are local to the Cython module,
 and don't need to be available to use in python code. We can gain additional
 performance boosts by defining them in such a way that the compiler knows they
-don't need to have a Python interface.  
+don't need to have a Python interface.
 
 We can use the `cdef` keyword to define local functions and even types. For
 example, in a Cython file called `physics.pyx`, we define the following function
@@ -142,7 +141,7 @@ cdef class Particle(object):
 These defined objects would be unavailable from the Python side, but will be
 available to other functions within that `pyx` file/module. They have the
 advantage that they have no Python overhead when called, so their performance is
-very good.  
+very good.
 
 ### Using `cpdef`
 
@@ -157,7 +156,7 @@ the array, you are passing in a view into the memory (see also
 for much more details on this).
 
 ~~~
- cpdef float distance(double[:] x, double[:] y):  
+ cpdef float distance(double[:] x, double[:] y):
      cdef int i
      cdef int n = x.shape[0]
      cdef float d = 0.0
