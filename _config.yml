@@ -26,7 +26,7 @@ email: arokem@uw.edu
 is_production: true
 
 # Sites.
-nhw_site: "https://neurohackademy.org
+nhw_site: "https://neurohackademy.org"
 nhw_github: "https://github.com/neurohackademy"
 swc_site: "https://software-carpentry.org"
 template_repo: "https://github.com/swcarpentry/styles"
