@@ -235,6 +235,12 @@ even more sophisticated task graph:
 
 ![](../fig/dask_array_tsnr.png)
 
+This looks really complicated, but notice that because dask has even more
+insight into what we are trying to do, it can delay some things until
+after aggregation. For example, the square root computation of the
+standard deviation can be done once at the end, instead of on each array
+separately.
+
 And this leads to an approximately additional 2-fold speedup.
 
 ### And there's a lot more
