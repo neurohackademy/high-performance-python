@@ -10,7 +10,6 @@ keypoints:
 - "Python can be slow in some conditions"
 - "Cython an Numba can give substantial performance boosts in some of these"
 - "Use them judiciously, to make your code faster"
-
 ---
 
 ### Numba does something quite different
