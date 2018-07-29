@@ -26,6 +26,7 @@ in the Python standard library, it's use is cumbersome and often requires compli
 decisions. Dask simplifies this substantially, by making the code simpler, and
 by making these decisions for you.
 
+
 ### Dask delayed computation:
 
 Let's look at a simple example:
@@ -233,7 +234,7 @@ This looks exactly like the code we used for the numpy array!
 Given more insight into what you want to do, dask is able to construct an
 even more sophisticated task graph:
 
-<img src="../fig/dask_array_tsnr.png" width="1000px"/>
+<img src="../fig/dask_array_tsnr.png" width="1200px"/>
 
 This looks really complicated, but notice that because dask has even more
 insight into what we are trying to do, it can delay some things until
@@ -243,4 +244,7 @@ separately.
 
 And this leads to an approximately additional 2-fold speedup.
 
-### And there's a lot more
+One of the main things to notice about the dask array is that because the
+data is not read into memory it can represent very large datasets, and
+schedule operations over these large datasets in a manner that makes the code
+seem as though all the data is in memory.
