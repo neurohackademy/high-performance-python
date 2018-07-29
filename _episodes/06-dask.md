@@ -233,7 +233,7 @@ This looks exactly like the code we used for the numpy array!
 Given more insight into what you want to do, dask is able to construct an
 even more sophisticated task graph:
 
-<img src="../fig/dask_array_tsnr.png.jpg" width="200px"/>
+<img src="../fig/dask_array_tsnr.png" width="200px"/>
 
 This looks really complicated, but notice that because dask has even more
 insight into what we are trying to do, it can delay some things until
