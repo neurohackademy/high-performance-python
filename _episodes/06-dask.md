@@ -114,6 +114,10 @@ this session.
 One way to calculate the tsnr across is to loop over the
 files, read in the data for each one of them, concatenate the data and then
 compute the tsnr from the concatenated series:
+~~~
+import nibabel as nib #in case it is not loaded and to prevent the confusing error
+~~~
+{: .python}
 
 ~~~
 data = []
