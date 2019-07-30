@@ -8,7 +8,7 @@ objectives:
 - "Use Numba to just-in-time compile Python code"
 keypoints:
 - "Python can be slow in some conditions"
-- "Cython an Numba can give substantial performance boosts in some of these"
+- "Cython and Numba can give substantial performance boosts in some of these"
 - "Use them judiciously, to make your code faster"
 ---
 
@@ -89,7 +89,7 @@ def fibj(n):
 > from the [Python reference documentation](https://docs.python.org/3/reference/compound_stmts.html#function-definitions):
 >
 > A function definition may be wrapped by one or more
-> (*decorator*)[http://docs.python.org/glossary.html#term-decorator]
+> [*decorator*](http://docs.python.org/glossary.html#term-decorator)
 > expressions. Decorator expressions are evaluated when the function is
 > defined, in the scope that contains the function definition. The result
 > must be a callable, which is invoked with the function object as the
