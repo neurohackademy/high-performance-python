@@ -124,10 +124,11 @@ within a function are the ones that take up most of the time.
 That's where a line-profiler comes in handy. To install with conda:
 
 ~~~
-conda install line-profiler
+conda install line_profiler  
 ~~~
 {: .bash}
 
+source:https://github.com/rkern/line_profiler
 To use the line-profiler in the notebook, you'll first need to load the
 line_profiler extension:
 
